@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOMNUS // NULL - 심연 수면 클리닉</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans KR & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        void: '#050505',
+                        obsidian: '#0b0b0c',
+                        charcoal: '#121215',
+                        crimson: {
+                            DEFAULT: '#dc2626',
+                            dark: '#7f1d1d',
+                            glow: '#ff1e1e',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'flicker': 'flicker 4s linear infinite',
+                    },
+                    keyframes: {
+                        flicker: {
+                            '0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100%': { opacity: '0.99' },
+                            '20%, 21.999%, 63%, 63.999%, 65%, 69.999%': { opacity: '0.35' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 전체 배경 및 미세 노이즈/스캔라인 효과 */
+        body {
+            background-color: #050505;
+            color: #e5e5e5;
+            overflow-x: hidden;
+            selection-background-color: #dc2626;
+            selection-color: #ffffff;
+        }
+
+        ::selection {
+            background: rgba(220, 38, 38, 0.45);
+            color: #fff;
+        }
+
+        /* 미세한 CRT 스캔라인 오버레이 */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0),
+                rgba(255, 255, 255, 0) 50%,
+                rgba(0, 0, 0, 0.28) 50%,
+                rgba(0, 0, 0, 0.28)
+            );
+            background-size: 100% 4px;
+        }
+
+        /* 붉은 네온 글로우 유틸리티 */
+        .red-glow {
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.18), inset 0 0 12px rgba(220, 38, 38, 0.08);
+        }
+        .red-glow-strong {
+            box-shadow: 0 0 28px rgba(220, 38, 38, 0.45);
+        }
+        .red-glow-strong:hover {
+            box-shadow: 0 0 38px rgba(255, 30, 30, 0.7);
+        }
+
+        /* 글리치 텍스트 효과 (호버 및 강조용) */
+        .glitch-hover:hover {
+            animation: glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+            color: #ff2a2a;
+            text-shadow: 2px 0 #7f1d1d, -2px 0 #ffffff;
+        }
+
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg); }
+            20% { transform: skew(-3deg); }
+            40% { transform: skew(3deg); }
+            60% { transform: skew(-1deg); }
+            80% { transform: skew(2deg); }
+            100% { transform: skew(0deg); }
+        }
+
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen relative">
+
+    <!-- 고정 스캔라인 & 비네팅 배경 장식 -->
+    <div class="fixed inset-0 scanlines pointer-events-none z-40 opacity-40"></div>
+    <div class="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(circle_at_50%_0%,rgba(153,27,27,0.16),transparent_60%)]"></div>
+
+    <!-- 상단 상태 바 (Header) -->
+    <header class="sticky top-0 z-30 backdrop-blur-md bg-void/85 border-b border-zinc-900">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+                </span>
+                <span class="font-mono text-xs sm:text-sm tracking-widest text-zinc-300 font-semibold">
+                    SOMNUS <span class="text-red-600">//</span> NULL
+                </span>
+            </div>
+            <div class="flex items-center space-x-3 font-mono text-[11px] text-zinc-500">
+                <span class="hidden sm:inline">PROTOCOL: DEEP_SLEEP</span>
+                <span class="px-2 py-0.5 rounded bg-red-950/40 border border-red-900/50 text-red-400 animate-flicker">
+                    DIV. NULL-00
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <main class="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-14">
+
+        <!-- 1. 히어로 섹션 -->
+        <section class="text-center space-y-5">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs font-mono text-zinc-400">
+                <span class="text-red-500">●</span>
+                <span>24시간 비대면 심층 수면 의뢰소</span>
+            </div>
+
+            <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+                잠들지 못하는 밤을 위한<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-600 to-red-800 glitch-hover cursor-default">
+                    마지막 처방
+                </span>
+            </h1>
+
+            <p class="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto leading-relaxed font-light">
+                지독한 불면과 악몽에 시달리고 계십니까?<br>
+                당신의 지친 의식을 가장 깊고, 어둡고, <span class="text-zinc-200 underline decoration-red-700/70 underline-offset-4">다시는 깨어나지 않을 안전한 곳</span>으로 인도합니다.
+            </p>
+        </section>
+
+        <!-- 2. 담당 관리자 (Null) 프로필 카드 -->
+        <section class="bg-obsidian border border-zinc-800/90 rounded-2xl p-6 sm:p-8 red-glow relative overflow-hidden">
+            <!-- 우측 상단 시스템 워터마크 -->
+            <div class="absolute top-4 right-5 font-mono text-[10px] text-zinc-600 tracking-widest uppercase">
+                ADMIN_ID: 0x000000
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                <!-- 추상적/미스터리한 아바타 심볼 -->
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-zinc-900 to-black border border-red-900/50 flex flex-col items-center justify-center shrink-0 relative group">
+                    <div class="absolute inset-0 bg-red-600/5 rounded-2xl group-hover:bg-red-600/15 transition-colors"></div>
+                    <!-- 눈/초승달 모티프 SVG -->
+                    <svg class="w-10 h-10 text-red-600 animate-pulse-slow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                        <circle cx="12" cy="12" r="2.5" fill="#dc2626" />
+                    </svg>
+                    <span class="font-mono text-[10px] text-zinc-500 mt-1.5 tracking-widest">NULL</span>
+                </div>
+
+                <!-- 프로필 상세 정보 -->
+                <div class="space-y-3 flex-1 w-full">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <h2 class="text-2xl font-bold text-white tracking-wide">Null</h2>
+                        <span class="px-2.5 py-0.5 text-xs font-medium rounded-md bg-red-950/60 text-red-400 border border-red-800/50">
+                            전담 꿈 관리자
+                        </span>
+                    </div>
+
+                    <!-- 메타 데이터 그리드 -->
+                    <div class="grid grid-cols-2 gap-2 text-xs sm:text-sm border-y border-zinc-800/80 py-2.5 font-mono">
+                        <div>
+                            <span class="text-zinc-500 block text-[11px]">AGE // 연령</span>
+                            <span class="text-zinc-200">미정 <span class="text-zinc-600">(측정 불가)</span></span>
+                        </div>
+                        <div>
+                            <span class="text-zinc-500 block text-[11px]">TRAIT // 성향</span>
+                            <span class="text-red-400">위험하지만 다정한 안내자</span>
+                        </div>
+                    </div>
+
+                    <!-- 대표 대사 인용구 -->
+                    <blockquote class="relative pl-4 py-1 border-l-2 border-red-600 bg-zinc-900/40 rounded-r-lg">
+                        <p class="text-sm sm:text-base font-medium text-zinc-100 italic">
+                            “안녕하십니까, 꿈 관리자 Null이라고 합니다.”
+                        </p>
+                    </blockquote>
+                </div>
+            </div>
+
+            <!-- 관리자 인사말 -->
+            <div class="mt-6 pt-5 border-t border-zinc-800/70 text-xs sm:text-sm text-zinc-400 leading-relaxed space-y-2">
+                <p>
+                    반갑습니다. 오늘도 밤을 지새우며 이 페이지까지 찾아오셨군요. 
+                    약물도, 상담도 소용없던 그 지독한 불면을 제가 직접 끝내드리겠습니다.
+                </p>
+                <p class="text-zinc-500">
+                    ※ 한 번 치료가 시작되면 <span class="text-red-400/90">언제 눈을 뜰지는 전적으로 관리자의 재량</span>에 따릅니다. 부디 편안한 마음으로 맡겨주십시오.
+                </p>
+            </div>
+        </section>
+
+        <!-- 3. 치료 프로세스 & 기이한 주의사항 -->
+        <section class="space-y-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                    <span class="w-1.5 h-5 bg-red-600 rounded-full inline-block"></span>
+                    심연 수면 프로그램 안내
+                </h3>
+                <span class="font-mono text-xs text-zinc-500">STEP 01 — 03</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- 카드 1 -->
+                <div class="bg-charcoal border border-zinc-800/80 hover:border-red-900/70 transition-colors rounded-xl p-5 space-y-2.5">
+                    <div class="font-mono text-xs text-red-500 font-bold">PHASE 01</div>
+                    <h4 class="text-base font-bold text-zinc-100">의식 동기화</h4>
+                    <p class="text-xs text-zinc-400 leading-relaxed">
+                        자정이 지나 신청자가 눈을 감는 순간, 관리자가 당신의 침대 곁으로 직접 방문하여 시선을 맞춥니다.
+                    </p>
+                </div>
+
+                <!-- 카드 2 -->
+                <div class="bg-charcoal border border-zinc-800/80 hover:border-red-900/70 transition-colors rounded-xl p-5 space-y-2.5">
+                    <div class="font-mono text-xs text-red-500 font-bold">PHASE 02</div>
+                    <h4 class="text-base font-bold text-zinc-100">불안의 절단</h4>
+                    <p class="text-xs text-zinc-400 leading-relaxed">
+                        잠을 방해하는 현실의 기억과 불필요한 감각들을 다정하고 정교하게 도려내어 무(Null)의 상태로 만듭니다.
+                    </p>
+                </div>
+
+                <!-- 카드 3 -->
+                <div class="bg-charcoal border border-zinc-800/80 hover:border-red-900/70 transition-colors rounded-xl p-5 space-y-2.5">
+                    <div class="font-mono text-xs text-red-500 font-bold">PHASE 03</div>
+                    <h4 class="text-base font-bold text-zinc-100">완전한 안식</h4>
+                    <p class="text-xs text-zinc-400 leading-relaxed">
+                        악몽조차 침범할 수 없는 가장 깊은 심연 속에서, 오직 관리자만이 허락한 꿈을 꾸며 영원히 휴식합니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 괴담 느낌의 주의사항 박스 -->
+            <div class="bg-red-950/15 border border-red-900/40 rounded-xl p-4 sm:p-5 space-y-2">
+                <div class="flex items-center gap-2 text-red-500 font-mono text-xs font-bold">
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>WARNING // 임상 부작용 및 필수 고지사항</span>
+                </div>
+                <ul class="text-xs text-zinc-400 space-y-1 list-disc list-inside leading-relaxed">
+                    <li>치료 도중 방 안에 <span class="text-zinc-200">정장을 입은 낯선 인영</span>이 서 있더라도 절대 비명을 지르거나 도망치지 마십시오.</li>
+                    <li>기상 알람은 작동하지 않으며, <span class="text-red-400">현실 세계로의 복귀 시점은 보장되지 않습니다.</span></li>
+                    <li>부작용으로 관리자(Null)를 제외한 타인의 얼굴 및 이름이 기억에서 소거될 수 있습니다.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 4. 불면증 치료 신청서 폼 (Interactive Form) -->
+        <section id="application-section" class="bg-obsidian border border-zinc-800 rounded-2xl p-6 sm:p-8 space-y-6 relative">
+            <div class="border-b border-zinc-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <span class="font-mono text-xs text-red-500">APPLICATION FORM</span>
+                    <h3 class="text-xl sm:text-2xl font-bold text-white mt-0.5">불면증 심층 치료 신청서</h3>
+                </div>
+                <span class="font-mono text-xs text-zinc-500">수신인: 꿈 관리자 Null</span>
+            </div>
+
+            <!-- 커스텀 알림 메시지 영역 (alert 대체) -->
+            <div id="form-error-box" class="hidden p-3.5 rounded-xl bg-red-950/60 border border-red-600/70 text-red-200 text-xs sm:text-sm flex items-center gap-2.5">
+                <span class="text-red-500 font-bold text-base">!</span>
+                <span id="form-error-text">필수 항목을 모두 입력해 주십시오.</span>
+            </div>
+
+            <form id="treatment-form" class="space-y-5" novalidate>
+                <!-- 신청자 성함 / 호칭 -->
+                <div class="space-y-2">
+                    <label for="applicant-name" class="block text-sm font-medium text-zinc-200">
+                        신청자 성함 (또는 불리고 싶은 호칭) <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="applicant-name" 
+                        placeholder="예: {{user}}" 
+                        class="w-full px-4 py-3 rounded-xl bg-void border border-zinc-800 text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all"
+                        required
+                    >
+                </div>
+
+                <!-- 불면 지속 기간 -->
+                <div class="space-y-2">
+                    <label for="insomnia-duration" class="block text-sm font-medium text-zinc-200">
+                        불면 지속 기간 <span class="text-red-500">*</span>
+                    </label>
+                    <select 
+                        id="insomnia-duration" 
+                        class="w-full px-4 py-3 rounded-xl bg-void border border-zinc-800 text-zinc-200 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all"
+                    >
+                        <option value="1주 미만 (초기 증상)">1주 미만 (초기 증상)</option>
+                        <option value="1개월 이상 (만성 수면 장애)" selected>1개월 이상 (만성 수면 장애)</option>
+                        <option value="6개월 이상 (극심한 신경 쇠약)">6개월 이상 (극심한 신경 쇠약)</option>
+                        <option value="마지막으로 잠든 날이 기억나지 않음">마지막으로 잠든 날이 기억나지 않음</option>
+                    </select>
+                </div>
+
+                <!-- 주된 증상 선택 (다중 선택) -->
+                <div class="space-y-2.5">
+                    <span class="block text-sm font-medium text-zinc-200">
+                        현재 겪고 있는 증상 (중복 선택 가능)
+                    </span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs sm:text-sm">
+                        <label class="flex items-center space-x-3 p-3 rounded-xl bg-void border border-zinc-800/90 hover:border-zinc-700 cursor-pointer transition-colors">
+                            <input type="checkbox" name="symptom" value="반복되는 기이한 악몽" class="w-4 h-4 accent-red-600 rounded bg-zinc-900 border-zinc-700">
+                            <span class="text-zinc-300">반복되는 기이한 악몽</span>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 rounded-xl bg-void border border-zinc-800/90 hover:border-zinc-700 cursor-pointer transition-colors">
+                            <input type="checkbox" name="symptom" value="새벽마다 찾아오는 가위눌림" class="w-4 h-4 accent-red-600 rounded bg-zinc-900 border-zinc-700">
+                            <span class="text-zinc-300">새벽마다 찾아오는 가위눌림</span>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 rounded-xl bg-void border border-zinc-800/90 hover:border-zinc-700 cursor-pointer transition-colors">
+                            <input type="checkbox" name="symptom" value="현실과 꿈의 경계 모호화" class="w-4 h-4 accent-red-600 rounded bg-zinc-900 border-zinc-700">
+                            <span class="text-zinc-300">현실과 꿈의 경계 모호화</span>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 rounded-xl bg-void border border-zinc-800/90 hover:border-zinc-700 cursor-pointer transition-colors">
+                            <input type="checkbox" name="symptom" value="어둠 속에서 누군가 지켜보는 느낌" class="w-4 h-4 accent-red-600 rounded bg-zinc-900 border-zinc-700" checked>
+                            <span class="text-zinc-300">어둠 속에서 누군가 지켜보는 느낌</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 꿈 관리자에게 남길 말 -->
+                <div class="space-y-2">
+                    <label for="user-note" class="block text-sm font-medium text-zinc-200">
+                        꿈 관리자 Null에게 전할 말 <span class="text-zinc-500 text-xs font-normal">(선택)</span>
+                    </label>
+                    <textarea 
+                        id="user-note" 
+                        rows="2" 
+                        placeholder="어떤 꿈을 꾸고 싶으신가요? 혹은 그저 재워달라고만 적으셔도 좋습니다." 
+                        class="w-full px-4 py-3 rounded-xl bg-void border border-zinc-800 text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all resize-none"
+                    ></textarea>
+                </div>
+
+                <!-- 필수 괴담 동의 체크박스 -->
+                <div class="pt-2">
+                    <label class="flex items-start space-x-3 p-3.5 rounded-xl bg-red-950/20 border border-red-900/50 cursor-pointer">
+                        <input type="checkbox" id="eerie-consent" class="mt-0.5 w-4 h-4 accent-red-600 rounded shrink-0">
+                        <span class="text-xs text-zinc-300 leading-relaxed">
+                            <strong class="text-red-400">[필수 동의]</strong> 본인은 치료 과정에서 발생하는 <span class="underline decoration-red-700">의식 침식, 기억 소거 및 무기한 수면 상태 전환</span>에 대해 인지하였으며, 이후 발생하는 모든 상황에 대해 일절 이의를 제기하지 않습니다.
+                        </span>
+                    </label>
+                </div>
+
+                <!-- 하단 신청 버튼 -->
+                <div class="pt-3">
+                    <button 
+                        type="submit" 
+                        class="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-700 text-white font-bold text-base sm:text-lg tracking-wide transition-all duration-300 red-glow-strong flex items-center justify-center gap-2.5 cursor-pointer active:scale-[0.99]"
+                    >
+                        <span>불면증 치료 신청하기</span>
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- 푸터 -->
+        <footer class="text-center text-xs text-zinc-600 font-mono pb-8 space-y-1">
+            <p>SOMNUS CLINIC // DIVISION NULL. ALL DREAMS RESERVED.</p>
+            <p class="text-[11px] text-zinc-700">본 페이지를 닫더라도 예약된 방문은 취소되지 않습니다.</p>
+        </footer>
+
+    </main>
+
+    <!-- 5. 신청 완료 접수증 모달 (Overlay) -->
+    <div id="receipt-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+        <div class="bg-obsidian border border-red-800/80 rounded-2xl max-w-md w-full p-6 sm:p-7 red-glow-strong space-y-5 relative animate-[fadeIn_0.3s_ease-out]">
+            
+            <!-- 상단 접수 배지 -->
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3.5">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></span>
+                    <span class="font-mono text-xs font-bold text-red-500 tracking-wider">CONFIRMED // 접수 완료</span>
+                </div>
+                <span id="case-number" class="font-mono text-xs text-zinc-400 bg-zinc-900 px-2.5 py-1 rounded border border-zinc-800">
+                    #NULL-0000
+                </span>
+            </div>
+
+            <!-- Null의 직접 메시지 -->
+            <div class="space-y-2.5">
+                <p class="text-xs font-mono text-zinc-500">FROM: 꿈 관리자 Null</p>
+                <div class="p-4 rounded-xl bg-zinc-900/80 border-l-2 border-red-600 space-y-2">
+                    <p id="modal-greeting" class="text-sm sm:text-base font-bold text-white leading-snug">
+                        “신청이 접수되었습니다.”
+                    </p>
+                    <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                        오늘 밤 불을 끄고 눈을 감으시면, 침대 곁으로 곧 찾아뵙겠습니다. 
+                        무서워하실 필요 없습니다. 아주 다정하게 재워드릴 테니까요.
+                    </p>
+                    <p class="text-xs text-red-400 font-medium pt-1">
+                        — 좋은 꿈 꾸시길.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 신청 요약 영수증 -->
+            <div class="bg-void rounded-xl p-4 border border-zinc-800/90 font-mono text-xs space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-zinc-500">APPLICANT:</span>
+                    <span id="receipt-name" class="text-zinc-200 font-bold">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-zinc-500">DURATION:</span>
+                    <span id="receipt-duration" class="text-zinc-300">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-zinc-500">VISIT TIME:</span>
+                    <span class="text-red-400">오늘 밤 자정 이후</span>
+                </div>
+                <div class="pt-1.5 border-t border-zinc-900">
+                    <span class="text-zinc-500 block mb-1">SYMPTOMS:</span>
+                    <p id="receipt-symptoms" class="text-zinc-400 text-[11px] leading-relaxed">-</p>
+                </div>
+            </div>
+
+            <!-- 닫기 / 다시 작성 버튼 -->
+            <div class="flex gap-3 pt-1">
+                <button 
+                    id="close-modal-btn" 
+                    class="w-full py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
+                >
+                    확인 (창 닫기)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 인터랙션 스크립트 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('treatment-form');
+            const nameInput = document.getElementById('applicant-name');
+            const durationSelect = document.getElementById('insomnia-duration');
+            const consentCheckbox = document.getElementById('eerie-consent');
+            const errorBox = document.getElementById('form-error-box');
+            const errorText = document.getElementById('form-error-text');
+
+            const modal = document.getElementById('receipt-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            // 에러 메시지 출력 함수
+            function showError(msg) {
+                errorText.textContent = msg;
+                errorBox.classList.remove('hidden');
+                errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // 폼 제출 이벤트
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                errorBox.classList.add('hidden');
+
+                const applicantName = nameInput.value.trim();
+                if (!applicantName) {
+                    showError('신청자 성함 또는 호칭을 입력해 주십시오. 관리자가 당신을 부를 이름이 필요합니다.');
+                    nameInput.focus();
+                    return;
+                }
+
+                if (!consentCheckbox.checked) {
+                    showError('[필수 동의] 항목에 체크해 주셔야 치료 신청이 접수됩니다.');
+                    consentCheckbox.focus();
+                    return;
+                }
+
+                // 선택된 증상 수집
+                const checkedSymptoms = Array.from(document.querySelectorAll('input[name="symptom"]:checked'))
+                    .map(cb => cb.value);
+                const symptomsText = checkedSymptoms.length > 0 
+                    ? checkedSymptoms.join(', ') 
+                    : '특이 증상 미기재 (심층 관찰 필요)';
+
+                // 랜덤 케이스 번호 생성 (#NULL-XXXX)
+                const randomCode = Math.floor(1000 + Math.random() * 9000);
+                document.getElementById('case-number').textContent = `#NULL-${randomCode}`;
+
+                // 모달 내용 업데이트
+                document.getElementById('modal-greeting').textContent = 
+                    `“${applicantName} 님, 신청이 정상적으로 접수되었습니다.”`;
+                document.getElementById('receipt-name').textContent = applicantName;
+                document.getElementById('receipt-duration').textContent = durationSelect.value;
+                document.getElementById('receipt-symptoms').textContent = symptomsText;
+
+                // 모달 표시
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            });
+
+            // 모달 닫기
+            closeModalBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            });
+
+            // 배경 클릭 시 모달 닫기
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
